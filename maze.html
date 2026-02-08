@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Welcome to Our Little Cute Game 💖</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .screen {
+      display: none;
+      text-align: center;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    h1 {
+      color: #fff;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      background: #ff7eb3;
+      color: white;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.1s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    canvas {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    .controls {
+      margin-top: 10px;
+    }
+
+    .controls button {
+      margin: 5px;
+      width: 60px;
+      height: 60px;
+      font-size: 20px;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 25px;
+      border-radius: 20px;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    textarea {
+      width: 100%;
+      height: 120px;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Start Screen -->
+  <div class="screen active" id="startScreen">
+    <h1>🌸 Welcome to Our Little Cute Game 🌸</h1>
+    <p style="color:white">A tiny maze, a tiny character, and a surprise 💌</p>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="screen" id="gameScreen">
+    <canvas id="gameCanvas" width="300" height="300"></canvas>
+    <div class="controls">
+      <div>
+        <button onclick="move(0,-1)">⬆️</button>
+      </div>
+      <div>
+        <button onclick="move(-1,0)">⬅️</button>
+        <button onclick="move(1,0)">➡️</button>
+      </div>
+      <div>
+        <button onclick="move(0,1)">⬇️</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message Modal -->
+  <div class="modal" id="messageModal">
+    <div class="modal-content">
+      <h2>💖 You found me 💖</h2>
+      <p>Click open to read the letter</p>
+      <button onclick="openLetter()">Open</button>
+    </div>
+  </div>
+
+  <!-- Letter Modal -->
+  <div class="modal" id="letterModal">
+    <div class="modal-content">
+      <h2>💌 A Letter For You ❤️💌</h2>
+      <textarea id="letterText" readonly>Hey my lily 💖
+
+If you’re reading this, it means you made it through the maze… and honestly, that’s kind of how you made it into my heart too❤️.
+
+Every step you took to get here made me smile a little more. I wanted to create something small, cute, and special—just like the feeling I get when I think about you.
+
+Thank you for playing, thank you for being you, and thank you for finding me or thank me for finding you cause I sent the Instagram request to you first 😘 I love you so much.❤️❤️❤️❤️
+
+💌 Always yours❤️.</textarea>
+      <br><br>
+      <button onclick="closeLetter()">Close</button>
+    </div>
+  </div>
+
+<script>
+  const startScreen = document.getElementById('startScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const tileSize = 30;
+  const maze = [
+    [1,1,1,1,1,1,1,1,1,1],
+    [1,0,0,0,1,0,0,0,0,1],
+    [1,0,1,0,1,0,1,1,0,1],
+    [1,0,1,0,0,0,0,1,0,1],
+    [1,0,1,1,1,1,0,1,0,1],
+    [1,0,0,0,0,1,0,1,0,1],
+    [1,1,1,1,0,1,0,1,0,1],
+    [1,0,0,1,0,0,0,0,0,1],
+    [1,0,1,1,1,1,1,1,0,1],
+    [1,1,1,1,1,1,1,1,1,1]
+  ];
+
+  let player = { x: 1, y: 1 };
+  let target = { x: 8, y: 8 };
+
+  function startGame() {
+    startScreen.classList.remove('active');
+    gameScreen.classList.add('active');
+    draw();
+  }
+
+  function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    for (let y=0; y<maze.length; y++) {
+      for (let x=0; x<maze[y].length; x++) {
+        if (maze[y][x] === 1) {
+          ctx.fillStyle = '#ffd1dc';
+          ctx.fillRect(x*tileSize, y*tileSize, tileSize, tileSize);
+        }
+      }
+    }
+
+    // Target (you)
+    ctx.fillStyle = '#ff4d6d';
+    ctx.beginPath();
+    ctx.arc(target.x*tileSize+15, target.y*tileSize+15, 10, 0, Math.PI*2);
+    ctx.fill();
+
+    // Player
+    ctx.fillStyle = '#6a5acd';
+    ctx.beginPath();
+    ctx.arc(player.x*tileSize+15, player.y*tileSize+15, 10, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function move(dx, dy) {
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+
+    if (maze[ny][nx] === 0) {
+      player.x = nx;
+      player.y = ny;
+      draw();
+    }
+
+    if (player.x === target.x && player.y === target.y) {
+      document.getElementById('messageModal').style.display = 'flex';
+    }
+  }
+
+  function openLetter() {
+    document.getElementById('messageModal').style.display = 'none';
+    document.getElementById('letterModal').style.display = 'flex';
+  }
+
+  function closeLetter() {
+    document.getElementById('letterModal').style.display = 'none';
+  }
+</script>
+</body>
+</html>
